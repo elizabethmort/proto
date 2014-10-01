@@ -1,0 +1,17 @@
+.lane {
+    width: 200px;
+    height: 600px;
+    float:left;
+    background-color: rgb(200,200,200);
+}
+.card {
+    margin: 2px;
+    width: 190px;
+    height: 100px;
+    position: relative;
+    background-color: rgb(220, 220, 200);
+}
+
+.highlight {
+    color: red;
+}

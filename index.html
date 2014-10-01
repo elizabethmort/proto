@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="lib/jquery.js"></script>
+    <script src="lib/angular.js"></script>
+    <link href="css/app.css" rel="stylesheet" type="text/css">
+</head>
+<body ng-app="app" ng-controller="main" tk-focus>
+<div ng-repeat="lane in lanes" class="lane">
+    <div ng-repeat="c in lane.cards" id="{{c.id}}" class="card" ng-class="{ highlight: c.highlighted }">
+        <span class="title">{{c.title}}</span>
+    </div>
+</div>
+<div>{{lanes | json}}</div>
+<script src="js/app.js"></script>
+</body>
+</html>
