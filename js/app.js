@@ -44,7 +44,84 @@ angular.module('app', []).controller('main', function ($scope) {
         return $scope.lanes[$scope.col]['cards'][clampedRow];
     };
 
+    function moveInProgress() {
+        return $scope.cardInTow ? true : false;
+    }
+
+    $scope.$on("move", function () {
+        if (moveInProgress())
+            $scope.drop();
+        else
+            $scope.drag();
+    });
+
+    $scope.$on("commit", function () {
+        if (moveInProgress())
+            $scope.$apply(function () {
+                $scope.drop();
+            });
+    });
+
+    $scope.drag = function () {
+        var card = $scope.currentCard();
+        if (!card) return;
+        $scope.cardInTow = card;
+        $scope.originalRow = $scope.row;
+        $scope.originalColumn = $scope.col;
+        $scope.dragRow = $scope.row;
+        $scope.dragColumn = $scope.col;
+
+        $scope.updateDrag($scope.dragRow, $scope.dragColumn);
+    };
+
+    function getLane(c) {
+        return $scope.lanes[c];
+    }
+
+    function pickUpCard(r, c) {
+        var cards = getLane(c).cards;
+        cards.splice(r, 1);
+    }
+
+    function dropCard(r, c) {
+        var cards = getLane(c).cards;
+        cards.splice(r, 0, $scope.cardInTow);
+    }
+
+    function outOfBounds(r, c) {
+        if (c < 0 || c >= $scope.lanes.length) return true;
+        var nrows = $scope.lanes[c]['cards'].length;
+        return (r < 0 || r >= nrows);
+    }
+
+    $scope.updateDrag = function (nr, nc) {
+        if (outOfBounds(nr, nc)) return;
+        //if (nr == $scope.dragRow && nc == $scope.dragColumn) return;
+        $scope.$apply(function () {
+            pickUpCard($scope.dragRow, $scope.dragColumn);
+            dropCard(nr, nc);
+            $scope.dragRow = nr;
+            $scope.dragColumn = nc;
+        });
+    };
+
+    $scope.drop = function () {
+        $scope.cardInTow = undefined;
+        $scope.row = $scope.dragRow;
+        $scope.col = $scope.dragColumn;
+    };
+
+    $scope.cancelDrag = function () {
+        $scope.updateDrag($scope.originalRow, $scope.originalColumn);
+        $scope.drop();
+    };
+
     $scope.$on("escape", function () {
+        if ($scope.cardInTow) {
+            $scope.cancelDrag();
+            return;
+        }
+
         var card = $scope.currentCard();
         if (card && card.tasks && card.tasks.visible)
             $scope.toggleTasks();
@@ -72,6 +149,10 @@ angular.module('app', []).controller('main', function ($scope) {
         $scope.toggleTasks();
     });
     $scope.downCard = function () {
+        if (moveInProgress()) {
+            $scope.updateDrag($scope.dragRow + 1, $scope.dragColumn);
+            return;
+        }
         if ($scope.col == -1) $scope.col = 0;
         var nrows = $scope.lanes[$scope.col]['cards'].length;
         console.log(nrows);
@@ -110,6 +191,10 @@ angular.module('app', []).controller('main', function ($scope) {
         else
             $scope.downCard();
     });
+    $scope.tasksVisible = function () {
+        var card = $scope.currentCard();
+        return (card && card.tasks && card.tasks.visible);
+    };
     $scope.$on("mark", function () {
         var card = $scope.currentCard();
         if (card && card.tasks && card.tasks.visible) {
@@ -119,14 +204,24 @@ angular.module('app', []).controller('main', function ($scope) {
         }
     });
     $scope.$on("left", function () {
+        if ($scope.tasksVisible()) return;
+        if (moveInProgress()) {
+            $scope.updateDrag($scope.dragRow, $scope.dragColumn - 1);
+            return;
+        }
         if ($scope.row == -1) $scope.row = 0;
-        if ($scope.col >= 0)
+        if ($scope.col > 0)
             $scope.col--;
         $scope.$apply(function () {
             $scope.highlightCard();
         });
     });
     $scope.$on("right", function () {
+        if ($scope.tasksVisible()) return;
+        if (moveInProgress()) {
+            $scope.updateDrag($scope.dragRow, $scope.dragColumn + 1);
+            return;
+        }
         if ($scope.row == -1) $scope.row = 0;
         if ($scope.col < $scope.lanes.length - 1)
             $scope.col++;
@@ -135,6 +230,10 @@ angular.module('app', []).controller('main', function ($scope) {
         });
     });
     $scope.upCard = function () {
+        if (moveInProgress()) {
+            $scope.updateDrag($scope.dragRow - 1, $scope.dragColumn);
+            return;
+        }
         if ($scope.col == -1) $scope.col = 0;
         if ($scope.row > 0)
             $scope.row--;
@@ -170,11 +269,15 @@ angular.module('app', []).controller('main', function ($scope) {
                     scope.$emit("toggle-tasks");
                 else if (String.fromCharCode(event.charCode) == 'x')
                     scope.$emit("mark");
+                else if (String.fromCharCode(event.charCode) == 'm')
+                    scope.$emit("move");
                 else console.log(event.charCode);
             });
             jQuery(element).keyup(function (event) {
                 if (event.keyCode == 27)
                     scope.$emit("escape");
+                if (event.keyCode == 13)
+                    scope.$emit("commit");
             });
 
         }

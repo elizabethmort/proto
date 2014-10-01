@@ -7,13 +7,14 @@
 </head>
 <body ng-app="app" ng-controller="main" tk-focus>
 <div ng-repeat="lane in lanes" class="lane">
-    <div ng-repeat="c in lane.cards" id="{{c.id}}" class="card" ng-class="{ highlight: c.highlighted }">
+    <div ng-repeat="c in lane.cards" id="{{c.id}}" ng-class="{ card: true, dragTarget: cardInTow == c, highlight: c.highlighted }">
         <span class="title">{{c.title}}</span>
         <div class="tasks">tasks</div>
         <div ng-show="c.tasks.visible" class="expanded-tasks">
             <ul>
-                <li ng-repeat="t in c.tasks.items"><span class="disc" ng-show="$index == taskRow">o</span>
-                    <input type="checkbox" ng-model="t.complete">{{t.description}}</li>
+                <li ng-repeat="t in c.tasks.items" ng-class="{ disc: ($index == taskRow) }">
+                    <input type="checkbox" ng-model="t.complete">{{t.description}}
+                </li>
             </ul>
         </div>
     </div>

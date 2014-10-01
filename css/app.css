@@ -23,12 +23,29 @@
     width: 20px;
     height: 20px;
 }
+
+.dragTarget {
+    background-color: yellow;
+    box-shadow: 5px 5px 2px #888888;
+    z-index: 100;
+    transform: rotate(-3deg);
+}
+
 .expanded-tasks {
     position: absolute;
-    bottom: -90px;
+    top: 100px;
     background-color: white;
+    border-radius: 4px;
     z-index: 1000;
     left: 20px;
     width: 180px;
-    height: 90px;
+}
+
+ul {
+    padding: 0px;
+    margin: 0px;
+    list-style-type: none;
+}
+.disc {
+    background-color:  yellow;
 }
